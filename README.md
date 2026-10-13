@@ -82,6 +82,12 @@ python scripts/demo.py
 
 ## GitHub Actions
 
+Репозиторий: https://github.com/666Daredevil666/infosec-lab-01
+
+Первый фактический запуск: https://github.com/666Daredevil666/infosec-lab-01/actions/runs/38416967446
+
+Тесты и Bandit в этом запуске прошли. Snyk остановился на шаге проверки отсутствующего SNYK_TOKEN; полного успешного pipeline пока нет.
+
 Файл `.github/workflows/ci.yml` находится в корне самостоятельного проекта `lab-01`. Если публиковать весь infosec-labs как монорепозиторий, workflow нужно перенести в его корневой `.github/workflows/` и настроить рабочий каталог; иначе GitHub его не обнаружит.
 
 На push и pull_request запускаются:
@@ -91,28 +97,28 @@ python scripts/demo.py
 
 Отчёты сохраняются как Actions artifacts, в том числе при ошибке. Проверка Snyk использует repository secret `SNYK_TOKEN`; отсутствие секрета завершает job ошибкой и не выдаётся за успешный аудит. Порог отказа Snyk: high. Наличие более низких рисков нужно анализировать по полному JSON-отчёту.
 
-Для сдачи самостоятельно:
+Для завершения сдачи:
 
-1. Создать пустой публичный репозиторий на GitHub. Публиковать содержимое **lab-01**. `.venv`, БД, секреты и локальная evidence исключены из Git.
+1. Публичный репозиторий уже создан, содержимое **lab-01** опубликовано. `.venv`, БД, секреты и локальная evidence исключены из Git.
 2. Создать учётную запись Snyk и добавить её токен в GitHub: Settings → Secrets and variables → Actions → New repository secret → SNYK_TOKEN. В код/README токен не вставлять.
-3. Добавить remote и отправить проект:
+3. Для дальнейшей работы из свежей копии выполнить `git clone https://github.com/666Daredevil666/infosec-lab-01.git`. Для существующей локальной копии порядок подключения показан ниже:
 
 ```sh
-git remote add origin https://github.com/USERNAME/REPOSITORY.git
+git remote add origin https://github.com/666Daredevil666/infosec-lab-01.git
 git add .
 git commit -m 'Implement educational Flask API and security checks'
 git branch -M main
 git push -u origin main
 ```
 
-Заменить USERNAME/REPOSITORY собственными значениями. Если репозиторий уже имеет remote, сначала проверить `git remote -v`. Публикация здесь не выполнялась.
+Проект уже опубликован; повторять первоначальный commit/remote add не нужно. Для последующих изменений сначала проверить `git remote -v` и текущую ветку. На этой машине сохранённая HTTPS-авторизация Git устарела; публикация выполнена через подключение GitHub. Для самостоятельного push потребуется обновить вход GitHub Desktop или Git CLI.
 
 4. Дождаться завершения обеих jobs. Исправить реальные ошибки, если они возникнут. Сохранить ссылку на успешный Actions run, скриншоты pytest/Bandit и Snyk, скачать artifacts.
 5. Добавить проверенные скриншоты Actions в README (например, каталог docs/images) и отчёт. Затем обновить ссылку на последний успешный запуск.
 
-Обязательные ссылки для сдачи пока отсутствуют:
+Ссылки и оставшиеся материалы для сдачи:
 
-- Публичный репозиторий: [ТРЕБУЕТСЯ ССЫЛКА].
+- Публичный репозиторий: https://github.com/666Daredevil666/infosec-lab-01
 - Последний успешный pipeline: [ТРЕБУЕТСЯ ССЫЛКА].
 - Отчёты SAST/SCA из Actions: [ТРЕБУЕТСЯ РЕАЛЬНЫЙ СКРИНШОТ].
 
