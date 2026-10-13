@@ -1,0 +1,56 @@
+name: Tests and security
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  tests-and-bandit:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - run: python -m pip install -r requirements-dev.txt
+      - run: python -m pip install --no-deps -e .
+      - run: mkdir -p evidence
+      - run: python -m pytest -v --junitxml=evidence/pytest.xml
+      - name: Bandit SAST
+        run: bandit -r src -f json -o evidence/bandit.json
+      - name: Additional dependency audit
+        run: pip-audit -r requirements.txt -f json -o evidence/pip-audit.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: tests-and-local-security
+          path: evidence/
+  snyk-sca:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+      - run: python -m pip install -r requirements.txt
+      - run: npm install -g snyk
+      - name: Require Snyk credentials
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          if [ -z "$SNYK_TOKEN" ]; then
+            echo "Configure repository secret SNYK_TOKEN; SCA has not run."
+            exit 1
+          fi
+      - name: Snyk SCA
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        run: |
+          mkdir -p evidence
+          snyk test --file=requirements.txt --package-manager=pip --severity-threshold=high --json-file-output=evidence/snyk.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: snyk-sca-report
+          path: evidence/snyk.json
