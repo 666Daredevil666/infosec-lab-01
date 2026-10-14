@@ -1,9 +1,11 @@
-name: Tests and security
+name: Tests and Security
+run-name: "Security checks #${{ github.run_number }}"
 on: [push, pull_request]
 permissions:
   contents: read
 jobs:
   tests-and-bandit:
+    name: Tests and Code Analysis
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -28,6 +30,7 @@ jobs:
           name: tests-and-local-security
           path: evidence/
   snyk-sca:
+    name: Snyk Dependency Scan
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
@@ -58,7 +61,8 @@ jobs:
         with:
           name: snyk-sca-report
           path: evidence/snyk.json
-  full-report:
+  project-summary:
+    name: Project Summary
     needs: [tests-and-bandit, snyk-sca]
     if: ${{ !cancelled() }}
     runs-on: ubuntu-24.04
@@ -70,12 +74,49 @@ jobs:
       - uses: actions/download-artifact@v8
         with:
           path: evidence
+          pattern: "*-security"
           merge-multiple: true
+      - uses: actions/download-artifact@v8
+        with:
+          name: snyk-sca-report
+          path: evidence
       - run: python -m pip install defusedxml==0.7.1
       - name: Build report
         run: python scripts/report.py
       - uses: actions/upload-artifact@v7
         with:
-          name: full-report
+          name: project-summary
           path: full-report/
+          if-no-files-found: error
+  dependency-check:
+    name: OWASP Dependency-Check
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - name: Download application dependencies
+        run: |
+          mkdir -p dependency-scan
+          python -m pip download --only-binary=:all: --no-deps -r requirements.txt -d dependency-scan
+          cp requirements.txt dependency-scan/
+      - name: Scan dependencies
+        uses: dependency-check/Dependency-Check_Action@1e54355a8b4c8abaa8cc7d0b70aa655a3bb15a6c
+        with:
+          project: infosec-lab-01
+          path: dependency-scan
+          format: ALL
+          out: dependency-check-report
+          args: >
+            --enableExperimental
+            --disableOssIndex
+            --failOnCVSS 7
+      - name: Upload OWASP report
+        if: ${{ !cancelled() && hashFiles('dependency-check-report/dependency-check-report.html') != '' }}
+        uses: actions/upload-artifact@v7
+        with:
+          name: full-report
+          path: dependency-check-report/
           if-no-files-found: error
