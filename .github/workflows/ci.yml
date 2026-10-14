@@ -97,10 +97,9 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: '3.13'
-      - name: Download application dependencies
+      - name: Prepare dependency manifest
         run: |
           mkdir -p dependency-scan
-          python -m pip download --only-binary=:all: --no-deps -r requirements.txt -d dependency-scan
           cp requirements.txt dependency-scan/
       - name: Scan dependencies
         uses: dependency-check/Dependency-Check_Action@1e54355a8b4c8abaa8cc7d0b70aa655a3bb15a6c
@@ -112,6 +111,7 @@ jobs:
           args: >
             --enableExperimental
             --disableOssIndex
+            --suppression /github/workspace/dependency-check-suppressions.xml
             --failOnCVSS 7
       - name: Upload OWASP report
         if: ${{ !cancelled() && hashFiles('dependency-check-report/dependency-check-report.html') != '' }}

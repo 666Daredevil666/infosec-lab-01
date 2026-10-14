@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<suppressions xmlns="https://jeremylong.github.io/DependencyCheck/dependency-suppression.1.3.xsd">
+  <suppress>
+    <notes><![CDATA[
+      Reviewed 2026-10-14. PyPI PyJWT 2.15.1 is jpadilla/pyjwt (Python),
+      not lcobucci/jwt (PHP). Dependency-Check also assigned jwt_project:jwt,
+      incorrectly linking CVE-2025-45770 (lcobucci/jwt 5.4.3).
+      Remove only that incorrect CPE for this exact package/version;
+      retain the correct pyjwt_project:pyjwt CPE and all other checks.
+      Source: https://github.com/CVEProject/cvelistV5/blob/main/cves/2025/45xxx/CVE-2025-45770.json
+      Package: https://pypi.org/project/PyJWT/2.15.1/
+    ]]></notes>
+    <packageUrl>pkg:pypi/pyjwt@2.15.1</packageUrl>
+    <cpe>cpe:/a:jwt_project:jwt:2.15.1</cpe>
+  </suppress>
+</suppressions>
