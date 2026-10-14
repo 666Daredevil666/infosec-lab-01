@@ -4,7 +4,7 @@ permissions:
   contents: read
 jobs:
   tests-and-bandit:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
@@ -24,7 +24,7 @@ jobs:
           name: tests-and-local-security
           path: evidence/
   snyk-sca:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-python@v7
