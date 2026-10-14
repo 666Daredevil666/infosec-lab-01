@@ -12,11 +12,15 @@ jobs:
           python-version: '3.13'
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m pip install --no-deps -e .
-      - run: mkdir -p evidence
+      - run: |
+          mkdir -p evidence
+          python -m pip inspect --local > evidence/packages.json
       - run: python -m pytest -v --junitxml=evidence/pytest.xml
       - name: Bandit SAST
+        if: ${{ !cancelled() }}
         run: bandit -r src -f json -o evidence/bandit.json
       - name: Additional dependency audit
+        if: ${{ !cancelled() }}
         run: pip-audit -r requirements.txt -f json -o evidence/pip-audit.json
       - uses: actions/upload-artifact@v7
         if: always()
@@ -48,9 +52,30 @@ jobs:
           SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
         run: |
           mkdir -p evidence
-          snyk test --file=requirements.txt --package-manager=pip --severity-threshold=high --json-file-output=evidence/snyk.json
+          snyk test --file=requirements.txt --package-manager=pip --json-file-output=evidence/snyk.json
       - uses: actions/upload-artifact@v7
         if: always()
         with:
           name: snyk-sca-report
           path: evidence/snyk.json
+  full-report:
+    needs: [tests-and-bandit, snyk-sca]
+    if: ${{ !cancelled() }}
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: '3.13'
+      - uses: actions/download-artifact@v8
+        with:
+          path: evidence
+          merge-multiple: true
+      - run: python -m pip install defusedxml==0.7.1
+      - name: Build report
+        run: python scripts/report.py
+      - uses: actions/upload-artifact@v7
+        with:
+          name: full-report
+          path: full-report/
+          if-no-files-found: error
